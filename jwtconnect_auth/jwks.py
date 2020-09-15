@@ -6,6 +6,7 @@ from cryptojwt.jwk.rsa import RSAKey
 from cryptojwt.key_jar import KeyJar
 from cryptojwt.key_bundle import KeyBundle
 from django.conf import settings
+from django.utils import timezone
 from django.utils.module_loading import import_string
 from oidcmsg.message import Message
 
@@ -55,7 +56,8 @@ class JWTConnectAuthKeyHandler(object):
         keyjar = KeyJar()
         keys = cls.keys()
         jwks = {'keys': [key.serialize(private=True) for key in keys]}
-        keyjar.import_jwks(jwks, issuer=getattr(settings, 'JWTAUTH_ISSUER', ""))
+        keyjar.import_jwks(jwks, issuer=getattr(settings, 
+                                                'JWTAUTH_ISSUER', ""))
         return keyjar
 
 
@@ -65,7 +67,7 @@ class JWTConnectAuthTokenBuilder(object):
         """
         user: a django user
         """
-        kwargs['iat'] = int(datetime.datetime.now().timestamp())
+        kwargs['iat'] = int(timezone.localtime().timestamp())
         if getattr(settings, 'JWTAUTH_ISSUER', None):
             kwargs['iss'] = settings.JWTAUTH_ISSUER
 
@@ -82,7 +84,7 @@ class JWTConnectAuthTokenBuilder(object):
         access_token['jti'] = get_random_hash()
         access_token['ttype'] = 'T'
         atoken_lifetime = JWTAUTH_ACCESS_TOKEN_LIFETIME
-        access_token['exp'] = int((datetime.datetime.now() + \
+        access_token['exp'] = int((timezone.localtime() + \
                                    datetime.timedelta(seconds=atoken_lifetime))\
                                   .timestamp())
         access_token.update(userinfo)
@@ -92,17 +94,20 @@ class JWTConnectAuthTokenBuilder(object):
         rtoken['ttype'] = 'R'
         rtoken['jti'] = get_random_hash()
         rtoken_lifetime = JWTAUTH_REFRESH_TOKEN_LIFETIME
-        rtoken['exp'] = int((datetime.datetime.now() + \
-                            datetime.timedelta(seconds=rtoken_lifetime))\
+        rtoken['exp'] = int((timezone.localtime() + \
+                             datetime.timedelta(seconds=rtoken_lifetime))\
                             .timestamp())
-        return dict(access=access_token, refresh=rtoken)
+        return dict(access_token=access_token, refresh_token=rtoken)
 
-    @classmethod
-    def create(cls, data, alg=None, **kwargs):
+    @staticmethod
+    def create(data, alg=None, **kwargs):
+        """
+        Only signed JWT from here
+        """
         alg = alg or getattr(settings,
                              'JWTAUTH_ALGORITHM', DEFAULT_JWTAUTH_ALGORITHM)
         keys = import_string(JWTAUTH_KEYJAR_HANDLER).keys()
 
         access_token, rtoken = data.values()
-        return {'access': Message(**access_token).to_jwt(keys, JWTAUTH_ALGORITHM),
-                'refresh': Message(**rtoken).to_jwt(keys, JWTAUTH_ALGORITHM)}
+        return {'access_token': Message(**access_token).to_jwt(keys, JWTAUTH_ALGORITHM),
+                'refresh_token': Message(**rtoken).to_jwt(keys, JWTAUTH_ALGORITHM)}

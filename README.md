@@ -1,13 +1,26 @@
 # django-jwtconnect-auth
 A Django JWT Authentication Backend built on top of JWTConnect.io, [CryptoJWT](https://cryptojwt.readthedocs.io/) and [OidcMsg](https://oidcmsg.readthedocs.io/).
 
-This application allows you to issue tokens in JWT format for:
+This application allows us to issue tokens in JWT format.
 
-- Authentication of applications and the renewal of these, via API
-- Trigger the creation of tokens, after a user have been logged in, in cases where SingleSignOn systems were involved
+- Third-party applications can have Access tokens and renew these, via Rest API
+- Trigger creation of tokens, after a user have been logged in, in cases where SingleSignOn systems were involved. There wouldn't be any submission of credentials from Application to jwtconenct-auth
 
+# Specifications and common endpoints
 
-### Demo project
+- Tokens could be relased with an authentication web resource where to submit username and password, mind that this would be disabled in the field of SSO infrastructures as SAML2.
+- Token creation is triggered once, independently by what kind of External Authentication happened, a django signal creates the token for authenticated users if this doesn't exist yet (signal should be enabled in your setup).
+  The release mechanism can be completely customized, you can decide how and where the release of token to the Apps would happen.
+- Tokens can be refreshed via GET and POST methods: `/token/refresh`
+- A user can have multiple active tokens or one at time (configurable in general `settings`). The last overwrite the older.
+- TokenIntrospection endpoint would let third-party applications to get additional information about a token:
+  `/token/introspection?format=json&jti=3323657efa02b73074f310f7be9db0b5dc332cc53dcfec91cda6e55f2f346fca`.
+  Example:
+  ````
+  curl -X GET http://127.0.0.1:8000/token/introspection?jti=3323657efa02b73074f310f7be9db0b5dc332cc53dcfec91cda6e55f2f346fca -H 'Authorization: Bearer $access_token_here' -H 'Accept: application/json; indent=4' -L
+  ````
+
+# Demo project
 
 In `example/` folder we have an example project usable as a demo.
 
@@ -19,25 +32,54 @@ cd example
 ./manage.py runserver
 ````
 
-### Setup
-
-Create your environment and activate it
-````
-virtualenv -ppython3 env
-source env/bin/activate
-````
+# Setup
 
 Install this application and all its dependency
 ````
 pip install git+https://github.com/peppelinux/django-jwtconnect-auth.git
 ````
 
-Create your own RSA certificates (in you desidered folder)
+Add it in `settings.INSTALLED_APPS`:
 ````
-openssl req -nodes -new -x509 -days 3650 -keyout private.key -out public.cert -subj '/CN=your.own.fqdn.com'
+INSTALLED_APPS = [
+    ...
+
+    'rest_framework',
+    'jwtconnect_auth',
+
+    ...
+]
 ````
 
-`settings.py` Parameters
+Add minimum parameters are involved to get it to work, see the complete list in `jwtconnect_auth/settings.py`
+````
+# JWTCONNECT SETTINGS
+JWTAUTH_KEY  = import_private_rsa_key_from_file('certs/private.key')
+JWTAUTH_CERT = import_public_key_from_cert_file('certs/public.cert')
+JWTAUTH_ISSUER = 'http://localhost:8000'
+````
+
+## Settings
+
+In `settings.REST_FRAMEWORK` add Authentication class:
+
+````
+REST_FRAMEWORK = {
+
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        # jwtconnect auth
+        'jwtconnect_auth.authentication.JWTConnectAuthBearer'
+    ]
+}
+````
+
+Create RSA certificates in your desidered folders:
+````
+openssl req -nodes -new -x509 -days 3650 -keyout certs/private.key -out certs/public.cert -subj '/CN=your.own.fqdn.com'
+````
+
+#### Settings Parameters
+Complete list.
 
 ````
 from cryptojwt.jwk.x509 import import_public_key_from_cert_file
@@ -51,7 +93,7 @@ JWTAUTH_UPDATE_LAST_LOGIN = True
 
 # Signature features (see cryptojwt documentation)
 
-# if symmetric
+# if symmetric: discourage, please forget it!
 JWTAUTH_ALGORITHM: 'HS256'
 JWTAUTH_KEY = 'thatsecret'
 
@@ -73,14 +115,14 @@ JWTAUTH_CLAIMS_MAP = dict(username = 'username',
 JWTAUTH_MULTIPLE_TOKENS = True
 ````
 
-### Tests
+# Tests
 
 ````
 cd example
 ./manage.py test jwtconnect_auth -v 2
 ````
 
-### API
+# API
 
 Playing with internals
 
@@ -149,7 +191,7 @@ msg.to_jwt()
 
 ````
 
-#### JWS implementation
+### JWS implementation
 
 [CryptoJWT](https://cryptojwt.readthedocs.io/) is the underlying library for doing this.
 
@@ -219,7 +261,6 @@ jws
 ````
 
 *Message to Signed JWT*
-The same as before, but with a different method.
 
 ````
 # with symmetric keys

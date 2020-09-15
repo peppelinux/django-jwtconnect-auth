@@ -17,9 +17,9 @@ class JWTTests(TestCase):
                                                       email='thatmail@ingoalla.org'))
         data = JWTConnectAuthTokenBuilder.build(user=user)
         logger.warn(json.dumps(data, indent=2))
-        assert data['access']['email'] == user.email
+        assert data['access_token']['email'] == user.email
 
         jwts = JWTConnectAuthTokenBuilder.create(data)
         logger.info(json.dumps(jwts, indent=2))
-        assert 'access' in jwts.keys()
-        assert 'refresh' in jwts.keys()
+        assert 'access_token' in jwts.keys()
+        assert 'refresh_token' in jwts.keys()
