@@ -12,7 +12,7 @@ from . serializers import *
 
 class TokenIntrospection(generics.ListCreateAPIView):
     http_method_names = ['get', 'head']
-    # permission_classes = [permissions.DjangoModelPermissionsOrAnonReadOnly]
+    permission_classes = [permissions.IsAuthenticated]
     description = _('Token Introspection')
     queryset = JWTConnectAuthToken.objects.filter(is_active=True)
     serializer_class = JWTConnectAuthTokenSerializer

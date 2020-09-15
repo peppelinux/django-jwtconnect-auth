@@ -17,7 +17,7 @@ This application allows us to issue tokens in JWT format.
   `/token/introspection?format=json&jti=3323657efa02b73074f310f7be9db0b5dc332cc53dcfec91cda6e55f2f346fca`.
   Example:
   ````
-  curl -X GET http://127.0.0.1:8000/token/introspection?jti=3323657efa02b73074f310f7be9db0b5dc332cc53dcfec91cda6e55f2f346fca -H 'Authorization: Bearer $access_token_here' -H 'Accept: application/json; indent=4' -L
+  curl -X GET http://127.0.0.1:8000/token/introspection?jti=3323657efa02b73074f310f7be9db0b5dc332cc53dcfec91cda6e55f2f346fca -H 'Authorization: Bearer $ACCESS_TOKEN' -H 'Accept: application/json; indent=4' -L
   ````
 
 # Demo project
