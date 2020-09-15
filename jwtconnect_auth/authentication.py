@@ -14,7 +14,13 @@ class JWTConnectAuthBearer(TokenAuthentication):
 
     keyword = 'Bearer'
     model = JWTConnectAuthToken
-
+    
+    def authenticate(self, request):
+        auth = get_authorization_header(request).split()
+        if not auth or auth[0].lower() != b'bearer':
+            return None
+        return super(JWTConnectAuthBearer, self).authenticate(request)
+    
     def authenticate_credentials(self, token):
         model = self.model
         try:
