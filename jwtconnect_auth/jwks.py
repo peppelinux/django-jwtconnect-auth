@@ -59,6 +59,14 @@ class JWTConnectAuthKeyHandler(object):
         keyjar.import_jwks(jwks, issuer=getattr(settings, 
                                                 'JWTAUTH_ISSUER', ""))
         return keyjar
+    
+    @classmethod
+    def decode_jwt(cls, jwt, verify=True, format='dict'):
+        keyjar = cls.keyjar()
+        jwt = Message().from_jwt(token, keyjar=keyjar)
+        if not jwt.verify():
+            raise InvalidJWTSignature('Not a valid JWT: signature failed on save.')
+        return getattr(jwt, 'to_{}'.format(format))()
 
 
 class JWTConnectAuthTokenBuilder(object):

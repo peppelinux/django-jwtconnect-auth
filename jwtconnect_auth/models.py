@@ -48,6 +48,12 @@ class JWTConnectAuthToken(models.Model):
         verbose_name = _('Token')
         verbose_name_plural = _('Tokens')
     
+    def decode_refresh(self):
+        return JWTConnectAuthKeyHandler.decode_jwt(self.refresh_token)
+    
+    def decode_access(self):
+        return JWTConnectAuthKeyHandler.decode_jwt(self.access_token)
+        
     @classmethod
     def create(cls, user, **kwargs):
         kwargs['user'] = user
@@ -86,7 +92,11 @@ class JWTConnectAuthToken(models.Model):
     def is_expired(self):
         if self.expire_at > timezone.localtime():
             return True
-
+    
+    def is_valid(self):
+        if self.is_active and not self.is_expired:
+            return True
+    
     def save(self, *args, **kwargs):
         fields_name = ('jti', 'iat', 'exp', 'sub', 'aud')
         fields = (getattr(self, k) for k in fields_name)
