@@ -26,6 +26,10 @@ Example:
   curl -H 'Content-type: application/json; indent=4' -H "Accept: application/json" -d '{"jti":"cd9db7ca7560149c543b08a8b8f03393eeb979e9c26d877f66c1fbca23a8554d"}' -X POST http://127.0.0.1:8000/token/introspection -H "Authorization: Bearer $ACCESS_TOKEN"
   ````
 
+![Alt text](gallery/introspection.png) 
+
+
+
 # Token Refresh
   
 The requestor must be authenticated (token involvedi n its http request headers).
@@ -36,6 +40,8 @@ Example:
   curl -H 'Content-type: application/json; indent=4' -H "Accept: application/json" -d '{"token":"eyJhbGciOiJSUzI1NiJ9.eyJpYXQiOiAxNjAwMjU5ODIxLCAiaXNzIjogImh0dHA6Ly9sb2NhbGhvc3Q6ODAwMCIsICJzdWIiOiAiODAzMjcwNDJiOTZiOWYxYzAwZDlkMDRkYjgxNmU4NGFmNGUzNjE2ZGIxZDA2OTRiMTNhYjg2ZjQ5ZmQyNTFiZiIsICJ0dHlwZSI6ICJSIiwgImp0aSI6ICI4ZjM5NzJlZDFlYTQ4YmU1ZjE5MDI1N2JmNWQ0NDlmZTk1MDViNzk5NDFlM2Q4ZjVmNDc3NTM0ZmNiMzc4Y2QwIiwgImV4cCI6IDE2MDAyNjM0MjF9.HHv5W4TWUlf3O_jZ5q2i9aPYQhl3NwnDbtorRGMCKBEY8jnITbdrF2GHVch-irXTf6hW1Vcs9lwDWyn8LKSwhc612NDAatar6BiD1YOPzg8JjKuu_C1TUeyfXoDU2FSCNIodSCmgiSd1DY8hMlzHEs_wBY5O39rlk2f9iX4LDk9HNb1ZWdZ_RMXgydgsmKjalPc9dK_Ckylf0kC-GU1d3gXWkiejYYkN67xn_eU4r1aNWfhUAOMq_tV2XKKelxqYQTMNYht5EdgKaQ5BLMq8TVM5JH_zopI6QYl_NVqqzn9eydLD48sy7lLcFnCh0tgnNjEqSLGui9u6192P2kXmXw"}' -X POST http://127.0.0.1:8000/token/refresh -H "Authorization: Bearer $ACCESS_TOKEN"
   ````
  
+![Alt text](gallery/refresh.png) 
+
 
 # Demo project
 
