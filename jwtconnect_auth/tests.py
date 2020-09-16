@@ -6,7 +6,7 @@ from django.contrib.auth import get_user_model
 from django.test import TestCase, Client
 from django.urls import reverse
 
-from . jwks import JWTConnectAuthTokenBuilder
+from . jwks import *
 from . models import JWTConnectAuthToken
 
 
@@ -27,11 +27,15 @@ class JWTTests(TestCase):
         logger.info(json.dumps(jwts, indent=2))
         assert 'access_token' in jwts.keys()
         assert 'refresh_token' in jwts.keys()
+        
+        atoken = JWTConnectAuthKeyHandler.decode_jwt(jwts['access_token'])
+        assert isinstance(atoken, dict)
 
     
     def test_create_user_jwt(self):
         user = get_user_model().objects.create(**_user_dict)
         jwk_store = JWTConnectAuthToken.create(user=user)
+        # jwk_store.aud = ['ciao', 'hola']
         return jwk_store
 
         

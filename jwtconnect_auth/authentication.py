@@ -25,7 +25,7 @@ class JWTConnectAuthBearer(TokenAuthentication):
         model = self.model
         try:
             token = model.objects.select_related('user').get(access_token=token)
-        except model.DoesNotExist:
+        except model.DoesNotExist: # pragma: no cover
             raise AuthenticationFailed(_('Invalid token.'))
 
         if not token.user.is_active:

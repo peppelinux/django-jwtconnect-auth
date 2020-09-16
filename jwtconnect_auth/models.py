@@ -99,8 +99,7 @@ class JWTConnectAuthToken(models.Model):
     @aud.setter
     def aud(self, values: list):
         if values:
-            self.aud = ' '.join(values)
-            self.save()
+            self.audience = ' '.join(values)
 
     def is_access_expired(self):
         if self.access_expire_at <= timezone.localtime():
