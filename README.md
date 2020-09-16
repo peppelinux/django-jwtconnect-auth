@@ -11,9 +11,10 @@ This application allows us to issue tokens in JWT format. This means that:
 - Tokens could be relased with an authentication web resource where to submit username and password, mind that this would be disabled in the field of SSO infrastructures as SAML2.
 - Token creation is triggered once, independently by what kind of External Authentication happens, a django signal creates the token for authenticated users if this doesn't exist yet (signal should be enabled in your setup).
   The release mechanism can be completely customized, you can decide how and where the release of token to the Apps would happen, implementing it in your own.
-- Tokens can be refreshed via GET and POST methods: `/token/refresh`
+- Tokens can be refreshed via POST method: `/token/refresh`
 - A user can have multiple active tokens or one at time (configurable in general `settings`). The last overwrite the older.
 - TokenIntrospection endpoint would let third-party applications to get additional informations about a token.
+
   
 # Token Introspection
 
