@@ -39,36 +39,38 @@ class JWTTests(TestCase):
         jwk_store = self.test_create_user_jwt()
         atoken = jwk_store.access_token
         rtoken = jwk_store.refresh_token
-        headers = {'Authorization': 'Bearer f{atoken}'}
         url = reverse('jwtconnect_auth:token_introspection')
-        req = Client().post(url, headers=headers, 
+        req = Client().post(url,
                             HTTP_ACCEPT='application/json',
                             content_type='application/json',
-                            data={'token': atoken}).json()
+                            data={'token': atoken},
+                            HTTP_AUTHORIZATION='Bearer {}'.format(atoken)
+                            ).json()
         assert len(req.keys()) > 3
 
-        req = Client().post(url, headers=headers, 
+        req = Client().post(url,
                             HTTP_ACCEPT='application/json',
                             content_type='application/json',
-                            data={'token': rtoken}).json()
+                            data={'token': rtoken},
+                            HTTP_AUTHORIZATION='Bearer {}'.format(atoken)
+                            ).json()
         assert len(req.keys()) > 3
 
 
     def test_token_refresh(self):
         jwk_store = self.test_create_user_jwt()
         atoken = jwk_store.access_token
-        headers = {'Authorization': 'Bearer f{atoken}'}
         url = reverse('jwtconnect_auth:token_refresh')
-        req = Client().post(url, headers=headers, 
-                            HTTP_ACCEPT='application/json',
+        req = Client().post(url, HTTP_ACCEPT='application/json',
                             content_type='application/json',
-                            data={'token': jwk_store.refresh_token}).json()
+                            data={'token': jwk_store.refresh_token},
+                            ).json()
         assert len(req.keys()) == 2 and 'access_token' in req
         
         settings.JWTAUTH_MULTIPLE_TOKENS = False
         JWTConnectAuthToken.create(user=jwk_store.user)
         JWTConnectAuthToken.create(user=jwk_store.user)
-        req = Client().post(url, headers=headers, 
+        req = Client().post(url,
                             HTTP_ACCEPT='application/json',
                             content_type='application/json',
                             data={'token': jwk_store.refresh_token}).json()

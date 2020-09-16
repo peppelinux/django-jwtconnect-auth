@@ -9,6 +9,7 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
 from . actions import remove_older_tokens
+from . authentication import JWTConnectAuthBearer
 from . models import *
 # from . permissions import *
 from . serializers import *
@@ -19,6 +20,10 @@ def token_introspection(request):
     """
     get "token" or "jti", return meta informations about the inspected token
     """
+    if not JWTConnectAuthBearer().authenticate(request):
+        return Response({'error': 'invalid_request', 
+                         'error_description': "please go away"}, status=status.HTTP_403_FORBIDDEN)
+    
     value = request.data.get('token') or request.data.get('jti')
     jwt_store = JWTConnectAuthToken.objects.filter(is_active=True).\
                                             filter(Q(refresh_jti=value)| \

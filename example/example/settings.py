@@ -128,6 +128,7 @@ STATIC_URL = '/static/'
 JWTAUTH_KEY  = import_private_rsa_key_from_file('certs/private.key')
 JWTAUTH_CERT = import_public_key_from_cert_file('certs/public.cert')
 JWTAUTH_ISSUER = 'http://localhost:8000'
+JWTAUTH_MULTIPLE_TOKENS = False
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [

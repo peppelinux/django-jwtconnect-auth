@@ -30,5 +30,8 @@ class JWTConnectAuthBearer(TokenAuthentication):
 
         if not token.user.is_active:
             raise AuthenticationFailed(_('User inactive or deleted.'))
+        
+        if token.is_access_expired():
+            raise AuthenticationFailed(_('Token expired.'))
 
         return (token.user, token)
