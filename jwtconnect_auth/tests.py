@@ -1,6 +1,7 @@
 import logging
 import json
 
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.test import TestCase, Client
 from django.urls import reverse
@@ -63,4 +64,14 @@ class JWTTests(TestCase):
                             content_type='application/json',
                             data={'token': jwk_store.refresh_token}).json()
         assert len(req.keys()) == 2 and 'access_token' in req
+        
+        settings.JWTAUTH_MULTIPLE_TOKENS = False
+        JWTConnectAuthToken.create(user=jwk_store.user)
+        JWTConnectAuthToken.create(user=jwk_store.user)
+        req = Client().post(url, headers=headers, 
+                            HTTP_ACCEPT='application/json',
+                            content_type='application/json',
+                            data={'token': jwk_store.refresh_token}).json()
+        assert JWTConnectAuthToken.objects.filter(user=jwk_store.user).count() == 1
+        
         

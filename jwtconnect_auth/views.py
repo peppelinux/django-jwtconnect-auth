@@ -70,7 +70,7 @@ def token_refresh(request):
         kwargs.update(**new_jwt_enc)
         new_jwt_store = JWTConnectAuthToken.objects.create(**kwargs)
         if not getattr(settings, 'JWTAUTH_MULTIPLE_TOKENS', True):
-            remove_older_tokens()
+            remove_older_tokens(user=jwt_store.user)
         return Response(new_jwt_enc, status=status.HTTP_201_CREATED)
     
     return Response({'error': 'invalid_request', 
