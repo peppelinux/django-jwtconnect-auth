@@ -70,6 +70,7 @@ class JWTConnectAuthKeyHandler(object):
 
 
 class JWTConnectAuthTokenBuilder(object):
+    
     @staticmethod
     def build(user=None, **kwargs):
         """
@@ -118,4 +119,6 @@ class JWTConnectAuthTokenBuilder(object):
 
         access_token, rtoken = data.values()
         return {'access_token': Message(**access_token).to_jwt(keys, JWTAUTH_ALGORITHM),
-                'refresh_token': Message(**rtoken).to_jwt(keys, JWTAUTH_ALGORITHM)}
+                'refresh_token': Message(**rtoken).to_jwt(keys, JWTAUTH_ALGORITHM),}
+                # 'token_type': 'bearer'}
+                

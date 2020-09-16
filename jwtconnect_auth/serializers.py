@@ -3,11 +3,11 @@ from rest_framework import serializers
 from . models import *
 
 
-class JWTConnectAuthTokenIntrospectionSerializer(serializers.HyperlinkedModelSerializer):
+# deprecated
+# class JWTConnectAuthTokenIntrospectionSerializer(serializers.HyperlinkedModelSerializer):
 
-    class Meta:
-        model = JWTConnectAuthToken
-        #  fields = '__all__'
-        fields = ['jti', 'exp', 'iat', 'sub', 'aud',
-                  'expire_at', 'issued_at']
+    # class Meta:
+        # model = JWTConnectAuthToken
+        # fields = ['iat', 'sub', 'aud', 'issued_at', 
+                  # 'access_expire_at', 'refresh_expire_at']
     

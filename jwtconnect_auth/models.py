@@ -1,3 +1,4 @@
+import copy
 import datetime
 import logging
 
@@ -23,9 +24,10 @@ class JWTConnectAuthToken(models.Model):
                                      unique=True)
     issued_at = models.DateTimeField(help_text=_('Issued At'),
                                      blank=True, null=True)
-    expire_at = models.DateTimeField(help_text=_('Expire at'),
+    access_expire_at = models.DateTimeField(help_text=_('Expire at'),
                                      blank=True, null=True)
-
+    refresh_expire_at = models.DateTimeField(help_text=_('Refresh expire at'),
+                                             blank=True, null=True)
     # optionals
     audience = models.CharField('aud',
                                 help_text=_('Audience, recipients that the JWT is'
@@ -37,9 +39,12 @@ class JWTConnectAuthToken(models.Model):
     sub = models.CharField(help_text=_('Django opaque user identifier'),
                            max_length=256,
                            blank=True, null=True)
-    jti = models.CharField(help_text=_('Unique identifier for this token'),
-                           max_length=256, unique=True,
-                           blank=True, null=True)
+    access_jti = models.CharField(help_text=_('Unique identifier for the access token'),
+                                  max_length=256, unique=True,
+                                  blank=True, null=True)
+    refresh_jti = models.CharField(help_text=_('Unique identifier for the refresh token'),
+                                   max_length=256, unique=True,
+                                   blank=True, null=True)
 
     is_active = models.BooleanField(default=True)
     created = models.DateTimeField(auto_now_add=True)
@@ -73,12 +78,20 @@ class JWTConnectAuthToken(models.Model):
         self.issued_at = timezone.make_aware(datetime.datetime.fromtimestamp(value))
 
     @property
-    def exp(self):
-        return int(self.expire_at.timestamp()) if self.expire_at else None
+    def access_exp(self):
+        return int(self.access_expire_at.timestamp()) if self.access_expire_at else None
 
-    @exp.setter
-    def exp(self, value):
-        self.expire_at = timezone.make_aware(datetime.datetime.fromtimestamp(value))
+    @access_exp.setter
+    def access_exp(self, value):
+        self.access_expire_at = timezone.make_aware(datetime.datetime.fromtimestamp(value))
+
+    @property
+    def refresh_exp(self):
+        return int(self.refresh_expire_at.timestamp()) if self.refresh_expire_at else None
+
+    @refresh_exp.setter
+    def refresh_exp(self, value):
+        self.refresh_expire_at = timezone.make_aware(datetime.datetime.fromtimestamp(value))
 
     @property
     def aud(self):
@@ -86,31 +99,46 @@ class JWTConnectAuthToken(models.Model):
 
     @aud.setter
     def aud(self, values: list):
-        self.aud = ' '.join(values)
-        self.save()
+        if values:
+            self.aud = ' '.join(values)
+            self.save()
 
-    def is_expired(self):
-        if self.expire_at > timezone.localtime():
+    def is_access_expired(self):
+        if self.access_expire_at <= timezone.localtime():
             return True
-    
-    def is_valid(self):
-        if self.is_active and not self.is_expired:
+
+    def is_refresh_expired(self):
+        if self.refresh_expire_at <= timezone.localtime():
             return True
-    
+
     def save(self, *args, **kwargs):
-        fields_name = ('jti', 'iat', 'exp', 'sub', 'aud')
+        fields_name = ('iat', 'sub', 'aud')
         fields = (getattr(self, k) for k in fields_name)
-        if not all(fields):
-            keyjar = JWTConnectAuthKeyHandler.keyjar()
-            for token in (self.access_token, self.refresh_token):
-                jwt = Message().from_jwt(token, keyjar=keyjar)
-                if not jwt.verify():
-                    raise InvalidJWTSignature('Not a valid JWT: signature failed on save.')
-            entry = jwt.to_dict()
-            for field in fields_name:
-                if not entry.get(field): continue
-                setattr(self, field, entry[field])
+        
+        keyjar = JWTConnectAuthKeyHandler.keyjar()
+        entry = dict()
+        
+        for token in (self.access_token, self.refresh_token):
+            jwt = Message().from_jwt(token, keyjar=keyjar)
+            if not jwt.verify():
+                raise InvalidJWTSignature('Not a valid JWT: signature failed on save.')
+            jwt_dict = jwt.to_dict()
+            if jwt_dict['ttype'] == 'R':
+                entry['refresh_expire_at'] = copy.deepcopy(jwt_dict['exp'])
+                entry['refresh_jti'] = copy.deepcopy(jwt_dict['jti'])
+            elif jwt_dict['ttype'] == 'T':
+                entry['access_expire_at'] = copy.deepcopy(jwt_dict['exp'])
+                entry['access_jti'] = copy.deepcopy(jwt_dict['jti'])
+            entry.update({k:v for k,v in jwt_dict.items()})
+        
+        self.refresh_exp = entry['refresh_expire_at']
+        self.access_exp = entry['access_expire_at']
+        self.refresh_jti = entry['refresh_jti']
+        self.access_jti = entry['access_jti']
+        self.iat = entry['iat']
+        self.sub = entry['sub']
+        self.aud = entry.get('aud', [])
         super(JWTConnectAuthToken, self).save(*args, **kwargs)
 
     def __str__(self):
-        return '{}: {}'.format(self.user, self.jti)
+        return '{}: {}'.format(self.user, self.issued_at)

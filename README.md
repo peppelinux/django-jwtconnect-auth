@@ -1,24 +1,41 @@
 # django-jwtconnect-auth
 A Django JWT Authentication Backend built on top of JWTConnect.io, [CryptoJWT](https://cryptojwt.readthedocs.io/) and [OidcMsg](https://oidcmsg.readthedocs.io/).
 
-This application allows us to issue tokens in JWT format.
+This application allows us to issue tokens in JWT format. This means that:
 
-- Third-party applications can have Access tokens and renew these, via Rest API
-- Trigger creation of tokens, after a user have been logged in, in cases where SingleSignOn systems were involved. There wouldn't be any submission of credentials from Application to jwtconenct-auth
+- Third-party applications can have Access tokens and renew these, via Rest API (Django Rest framework involved)
+- It can trigger creation of tokens, after a user have been logged in, in cases where SingleSignOn systems were involved. There wouldn't be any submission of credentials from Application to jwtconnect-auth
 
 # Specifications and common endpoints
 
 - Tokens could be relased with an authentication web resource where to submit username and password, mind that this would be disabled in the field of SSO infrastructures as SAML2.
-- Token creation is triggered once, independently by what kind of External Authentication happened, a django signal creates the token for authenticated users if this doesn't exist yet (signal should be enabled in your setup).
-  The release mechanism can be completely customized, you can decide how and where the release of token to the Apps would happen.
+- Token creation is triggered once, independently by what kind of External Authentication happens, a django signal creates the token for authenticated users if this doesn't exist yet (signal should be enabled in your setup).
+  The release mechanism can be completely customized, you can decide how and where the release of token to the Apps would happen, implementing it in your own.
 - Tokens can be refreshed via GET and POST methods: `/token/refresh`
 - A user can have multiple active tokens or one at time (configurable in general `settings`). The last overwrite the older.
-- TokenIntrospection endpoint would let third-party applications to get additional information about a token:
+- TokenIntrospection endpoint would let third-party applications to get additional informations about a token:
   `/token/introspection?format=json&jti=3323657efa02b73074f310f7be9db0b5dc332cc53dcfec91cda6e55f2f346fca`.
-  Example:
+  
+# Token Introspection
+
+The requestor must be authenticated (token involvedi n its http request headers).
+Params supported: token, jti.
+
+Example:
   ````
-  curl -H 'Accept: application/json; indent=4' -LX GET http://127.0.0.1:8000/token/introspection?jti=ab22e0cb2cb88f9c6c5e7da3a372893c9f916d8291c66a07fdb7d5a0ff466835 -H "Authorization: Bearer $ACCESS_TOKEN"
+  curl -H 'Content-type: application/json; indent=4' -H "Accept: application/json" -d '{"jti":"cd9db7ca7560149c543b08a8b8f03393eeb979e9c26d877f66c1fbca23a8554d"}' -X POST http://127.0.0.1:8000/token/introspection -H "Authorization: Bearer $ACCESS_TOKEN"
   ````
+
+# Token Refresh
+  
+The requestor must be authenticated (token involvedi n its http request headers).
+Params supported: token -> must be a valid refresh token.
+
+Example:
+  ````
+  curl -H 'Content-type: application/json; indent=4' -H "Accept: application/json" -d '{"token":"eyJhbGciOiJSUzI1NiJ9.eyJpYXQiOiAxNjAwMjU5ODIxLCAiaXNzIjogImh0dHA6Ly9sb2NhbGhvc3Q6ODAwMCIsICJzdWIiOiAiODAzMjcwNDJiOTZiOWYxYzAwZDlkMDRkYjgxNmU4NGFmNGUzNjE2ZGIxZDA2OTRiMTNhYjg2ZjQ5ZmQyNTFiZiIsICJ0dHlwZSI6ICJSIiwgImp0aSI6ICI4ZjM5NzJlZDFlYTQ4YmU1ZjE5MDI1N2JmNWQ0NDlmZTk1MDViNzk5NDFlM2Q4ZjVmNDc3NTM0ZmNiMzc4Y2QwIiwgImV4cCI6IDE2MDAyNjM0MjF9.HHv5W4TWUlf3O_jZ5q2i9aPYQhl3NwnDbtorRGMCKBEY8jnITbdrF2GHVch-irXTf6hW1Vcs9lwDWyn8LKSwhc612NDAatar6BiD1YOPzg8JjKuu_C1TUeyfXoDU2FSCNIodSCmgiSd1DY8hMlzHEs_wBY5O39rlk2f9iX4LDk9HNb1ZWdZ_RMXgydgsmKjalPc9dK_Ckylf0kC-GU1d3gXWkiejYYkN67xn_eU4r1aNWfhUAOMq_tV2XKKelxqYQTMNYht5EdgKaQ5BLMq8TVM5JH_zopI6QYl_NVqqzn9eydLD48sy7lLcFnCh0tgnNjEqSLGui9u6192P2kXmXw"}' -X POST http://127.0.0.1:8000/token/refresh -H "Authorization: Bearer $ACCESS_TOKEN"
+  ````
+ 
 
 # Demo project
 

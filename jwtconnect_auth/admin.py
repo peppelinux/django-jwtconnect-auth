@@ -5,6 +5,8 @@ from . models import JWTConnectAuthToken
 
 @admin.register(JWTConnectAuthToken)
 class JWTConnectAuthTokenAdmin(admin.ModelAdmin):
-    list_display = ('user', 'issued_at', 'expire_at')
-    list_filter = ('issued_at', 'expire_at', 'is_active')
-    search_fields = ('user', 'access_token', 'refresh_token')
+    list_display = ('user', 'issued_at', 
+                    'access_expire_at', 'refresh_expire_at')
+    list_filter = ('issued_at', 'is_active',
+                   'access_expire_at', 'refresh_expire_at')
+    search_fields = ('user', 'access_jti', 'refresh_jti',)
