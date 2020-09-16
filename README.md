@@ -4,7 +4,7 @@ A Django JWT Authentication Backend built on top of JWTConnect.io, [CryptoJWT](h
 This application allows us to issue tokens in JWT format. This means that:
 
 - Third-party applications can have Access tokens and renew these, via Rest API (Django Rest framework involved)
-- It can trigger creation of tokens, after a user have been logged in, in cases where SingleSignOn systems were involved. There wouldn't be any submission of credentials from Application to jwtconnect-auth
+- Creation of token after a user have been logged in, in cases where third-party SingleSignOn systems were involved. There wouldn't be any submission of credentials from Application to jwtconnect-auth to obtain a token.
 
 # Specifications and common endpoints
 
@@ -13,8 +13,7 @@ This application allows us to issue tokens in JWT format. This means that:
   The release mechanism can be completely customized, you can decide how and where the release of token to the Apps would happen, implementing it in your own.
 - Tokens can be refreshed via GET and POST methods: `/token/refresh`
 - A user can have multiple active tokens or one at time (configurable in general `settings`). The last overwrite the older.
-- TokenIntrospection endpoint would let third-party applications to get additional informations about a token:
-  `/token/introspection?format=json&jti=3323657efa02b73074f310f7be9db0b5dc332cc53dcfec91cda6e55f2f346fca`.
+- TokenIntrospection endpoint would let third-party applications to get additional informations about a token.
   
 # Token Introspection
 
@@ -32,7 +31,7 @@ Example:
 
 # Token Refresh
   
-The requestor must be authenticated (token involvedi n its http request headers).
+The requestor must be authenticated.
 Params supported: token -> must be a valid refresh token.
 
 Example:
@@ -143,6 +142,16 @@ JWTAUTH_MULTIPLE_TOKENS = True
 ````
 cd example
 ./manage.py test jwtconnect_auth -v 2
+````
+
+Coverage
+
+````
+cd example
+pip install coverage
+coverage erase
+coverage run ./manage.py test jwtconnect_auth
+coverage report -m
 ````
 
 # API

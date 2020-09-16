@@ -1,4 +1,5 @@
 from django.conf import settings
+from django.contrib.auth.signals import user_logged_in
 from django.db.models import Q
 from django.utils.translation import gettext as _
 
@@ -7,7 +8,7 @@ from rest_framework import generics, viewsets, permissions, status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
-
+from . actions import remove_older_tokens
 from . models import *
 # from . permissions import *
 from . serializers import *
@@ -68,7 +69,8 @@ def token_refresh(request):
         kwargs = dict(user = jwt_store.user)
         kwargs.update(**new_jwt_enc)
         new_jwt_store = JWTConnectAuthToken.objects.create(**kwargs)
-        
+        if not getattr(settings, 'JWTAUTH_MULTIPLE_TOKENS', True):
+            remove_older_tokens()
         return Response(new_jwt_enc, status=status.HTTP_201_CREATED)
     
     return Response({'error': 'invalid_request', 

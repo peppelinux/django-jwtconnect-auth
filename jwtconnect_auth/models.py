@@ -63,7 +63,6 @@ class JWTConnectAuthToken(models.Model):
     def create(cls, user, **kwargs):
         kwargs['user'] = user
         data = JWTConnectAuthTokenBuilder.build(**kwargs)
-        breakpoint()
         jwts = JWTConnectAuthTokenBuilder.create(data, **kwargs)
         kwargs.update(jwts)
         return cls.objects.create(**kwargs)
