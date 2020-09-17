@@ -10,6 +10,7 @@ from django.utils import timezone
 from django.utils.module_loading import import_string
 from oidcmsg.message import Message
 
+from . exceptions import InvalidJWT
 from . settings import *
 from . utils import get_random_hash, get_hash
 
@@ -63,11 +64,17 @@ class JWTConnectAuthKeyHandler(object):
     @classmethod
     def decode_jwt(cls, jwt, verify=True, format='dict'):
         keyjar = cls.keyjar()
-        jwt = Message().from_jwt(jwt, keyjar=keyjar)
-        if not jwt.verify():
-            raise InvalidJWTSignature('Not a valid JWT: signature failed on save.')
-        return getattr(jwt, 'to_{}'.format(format))()
-
+        
+        try:
+            jwt = Message().from_jwt(jwt, keyjar=keyjar)
+            jwt.verify()
+        except Exception as e:
+            logger.error(e)
+            raise InvalidJWT('Not a valid JWT: signature failed on save.')
+        if format:
+            return getattr(jwt, 'to_{}'.format(format))()
+        else:
+            return jwt
 
 class JWTConnectAuthTokenBuilder(object):
     

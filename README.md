@@ -2,7 +2,11 @@
 A Django JWT Authentication Backend built on top of JWTConnect.io, [CryptoJWT](https://cryptojwt.readthedocs.io/) and [OidcMsg](https://oidcmsg.readthedocs.io/).
 
 This application made simple building a JWT based authentication system, with less as possibile endpoint involved.
-Its birth is due to a desire for simplification in cases where a customized system is required for the granting of authorizations to access resources. It comes with the bare minimum, it could be useful as a basis also for the production of OAuth2 AS or OIDC Providers, it would just need to add specific endpoints and further attributes in the construction of the JWT.
+Its birth is due to a desire for simplification in cases where a customized system is required for the granting of authorizations to access resources. It comes with the bare minimum, it could be useful as a basis also for the production of *OAuth2 AS* and *OIDC Providers*, it would just need to add specific endpoints and further attributes in the construction of the JWT.
+
+The main goal for this application is to __provide a secure standard for JWT management__ and not to offer a OAuth2 or OIDC compliant server. These can be implemented on top of this app. This application also show us how to deal with [OidcMsg](https://oidcmsg.readthedocs.io/) and [CryptoJWT](https://cryptojwt.readthedocs.io/) in a totally free way.
+
+At this time and as it is, jwtconnect-auth can be adopted for the following scopes:
 
 - Third-party applications can have Access tokens and renew these, via Rest API (Django Rest framework)
 - Creation of token after a user have been logged in, in cases where third-party SingleSignOn systems were involved. There wouldn't be any submission of credentials from Application to jwtconnect-auth to obtain a token.

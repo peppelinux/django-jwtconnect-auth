@@ -1,2 +1,2 @@
-class InvalidJWTSignature(Exception):
+class InvalidJWT(Exception):
     pass

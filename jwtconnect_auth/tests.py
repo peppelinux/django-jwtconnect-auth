@@ -8,6 +8,7 @@ from django.contrib.auth import get_user_model
 from django.test import TestCase, Client
 from django.urls import reverse
 
+from . exceptions import InvalidJWT
 from . jwks import *
 from . models import JWTConnectAuthToken
 
@@ -19,6 +20,18 @@ _user_dict = dict(username='ciro', email='thatmail@ingoalla.org')
 
 
 class JWTTests(TestCase):
+    
+    def test_create_signed_jwt_nouser(self):
+        data = JWTConnectAuthTokenBuilder.build()
+        logger.warn(json.dumps(data, indent=2))
+
+        jwts = JWTConnectAuthTokenBuilder.create(data)
+        logger.info(json.dumps(jwts, indent=2))
+        assert 'access_token' in jwts.keys()
+        assert 'refresh_token' in jwts.keys()
+        
+        atoken = JWTConnectAuthKeyHandler.decode_jwt(jwts['access_token'])
+        assert isinstance(atoken, dict)
     
     def test_create_signed_jwt(self):
         user = get_user_model().objects.create(**_user_dict)
@@ -58,6 +71,23 @@ class JWTTests(TestCase):
         settings.JWTAUTH_KEY = import_private_rsa_key_from_file('certs/private.key')
         settings.JWTAUTH_CERT = import_public_key_from_cert_file('certs/public.cert')
     
+    def test_invalid_jwt(self):
+        user = get_user_model().objects.create(**_user_dict)
+        data = JWTConnectAuthTokenBuilder.build(user=user)
+        logger.warn(json.dumps(data, indent=2))
+
+        jwts = JWTConnectAuthTokenBuilder.create(data)
+        logger.info(json.dumps(jwts, indent=2))
+        assert 'access_token' in jwts.keys()
+        assert 'refresh_token' in jwts.keys()
+        
+        excp = None
+        try:
+            atoken = JWTConnectAuthKeyHandler.decode_jwt(jwts['access_token'][:-1])
+        except InvalidJWT as e:
+            excp = e
+            
+        assert isinstance(excp, InvalidJWT)
 
     def test_create_user_jwt(self):
         user = get_user_model().objects.create(**_user_dict)

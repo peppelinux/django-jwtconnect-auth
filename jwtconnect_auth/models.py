@@ -8,7 +8,7 @@ from django.db import models
 from django.utils import timezone
 from django.utils.translation import gettext as _
 
-from . exceptions import InvalidJWTSignature
+from . exceptions import InvalidJWT
 from . jwks import *
 
 
@@ -118,9 +118,12 @@ class JWTConnectAuthToken(models.Model):
         entry = dict()
         
         for token in (self.access_token, self.refresh_token):
-            jwt = Message().from_jwt(token, keyjar=keyjar)
-            if not jwt.verify():
-                raise InvalidJWTSignature('Not a valid JWT: signature failed on save.')
+            
+            try: 
+                jwt = JWTConnectAuthKeyHandler.decode_jwt(token, format=None)
+            except Exception as e: # pragma: no cover
+                logger.error(e)
+                raise InvalidJWT('Not a valid JWT: validation failed on save.')
             jwt_dict = jwt.to_dict()
             if jwt_dict['ttype'] == 'R':
                 entry['refresh_expire_at'] = copy.deepcopy(jwt_dict['exp'])

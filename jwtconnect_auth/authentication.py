@@ -28,10 +28,10 @@ class JWTConnectAuthBearer(TokenAuthentication):
         except model.DoesNotExist: # pragma: no cover
             raise AuthenticationFailed(_('Invalid token.'))
 
-        if not token.user.is_active:
+        if not token.user.is_active: # pragma: no cover
             raise AuthenticationFailed(_('User inactive or deleted.'))
         
-        if token.is_access_expired():
+        if token.is_access_expired(): # pragma: no cover
             raise AuthenticationFailed(_('Token expired.'))
 
         return (token.user, token)
