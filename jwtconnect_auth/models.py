@@ -64,7 +64,8 @@ class JWTConnectAuthToken(models.Model):
         kwargs['user'] = user
         data = JWTConnectAuthTokenBuilder.build(**kwargs)
         jwts = JWTConnectAuthTokenBuilder.create(data, **kwargs)
-        kwargs.update(jwts)
+        kwargs['access_token'] = jwts['access_token']
+        kwargs['refresh_token'] = jwts['refresh_token']
         return cls.objects.create(**kwargs)
         
     

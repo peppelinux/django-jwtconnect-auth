@@ -1,9 +1,10 @@
 # django-jwtconnect-auth
 A Django JWT Authentication Backend built on top of JWTConnect.io, [CryptoJWT](https://cryptojwt.readthedocs.io/) and [OidcMsg](https://oidcmsg.readthedocs.io/).
 
-This application allows us to issue tokens in JWT format. This means that:
+This application made simple building a JWT based authentication system, with less as possibile endpoint involved.
+Its birth is due to a desire for simplification in cases where a customized system is required for the granting of authorizations to access resources. It comes with the bare minimum, it could be useful as a basis also for the production of OAuth2 AS or OIDC Providers, it would just need to add specific endpoints and further attributes in the construction of the JWT.
 
-- Third-party applications can have Access tokens and renew these, via Rest API (Django Rest framework involved)
+- Third-party applications can have Access tokens and renew these, via Rest API (Django Rest framework)
 - Creation of token after a user have been logged in, in cases where third-party SingleSignOn systems were involved. There wouldn't be any submission of credentials from Application to jwtconnect-auth to obtain a token.
 
 # Specifications and common endpoints
@@ -18,7 +19,7 @@ This application allows us to issue tokens in JWT format. This means that:
   
 # Token Introspection
 
-The requestor must be authenticated (token involvedi n its http request headers).
+The requestor must be authenticated, a valid access token must bresent in its http request headers.
 Params supported: token, jti.
 
 Example:
@@ -29,15 +30,13 @@ Example:
 ![Alt text](gallery/introspection.png) 
 
 
-
 # Token Refresh
   
-The requestor must be authenticated.
 Params supported: token -> must be a valid refresh token.
 
 Example:
   ````
-  curl -H 'Content-type: application/json; indent=4' -H "Accept: application/json" -d '{"token":"eyJhbGciOiJSUzI1NiJ9.eyJpYXQiOiAxNjAwMjU5ODIxLCAiaXNzIjogImh0dHA6Ly9sb2NhbGhvc3Q6ODAwMCIsICJzdWIiOiAiODAzMjcwNDJiOTZiOWYxYzAwZDlkMDRkYjgxNmU4NGFmNGUzNjE2ZGIxZDA2OTRiMTNhYjg2ZjQ5ZmQyNTFiZiIsICJ0dHlwZSI6ICJSIiwgImp0aSI6ICI4ZjM5NzJlZDFlYTQ4YmU1ZjE5MDI1N2JmNWQ0NDlmZTk1MDViNzk5NDFlM2Q4ZjVmNDc3NTM0ZmNiMzc4Y2QwIiwgImV4cCI6IDE2MDAyNjM0MjF9.HHv5W4TWUlf3O_jZ5q2i9aPYQhl3NwnDbtorRGMCKBEY8jnITbdrF2GHVch-irXTf6hW1Vcs9lwDWyn8LKSwhc612NDAatar6BiD1YOPzg8JjKuu_C1TUeyfXoDU2FSCNIodSCmgiSd1DY8hMlzHEs_wBY5O39rlk2f9iX4LDk9HNb1ZWdZ_RMXgydgsmKjalPc9dK_Ckylf0kC-GU1d3gXWkiejYYkN67xn_eU4r1aNWfhUAOMq_tV2XKKelxqYQTMNYht5EdgKaQ5BLMq8TVM5JH_zopI6QYl_NVqqzn9eydLD48sy7lLcFnCh0tgnNjEqSLGui9u6192P2kXmXw"}' -X POST http://127.0.0.1:8000/token/refresh -H "Authorization: Bearer $ACCESS_TOKEN"
+  curl -H 'Content-type: application/json; indent=4' -H "Accept: application/json" -d '{"token":"$REFRESH_TOKEN}' -X POST http://127.0.0.1:8000/token/refresh
   ````
  
 ![Alt text](gallery/refresh.png) 
@@ -191,8 +190,11 @@ data would be something like:
 
 JWTs would be something like:
 ````
-'access': 'eyJhbGciOiJSUzI1NiJ9.eyJpYXQiOiAxNjAwMTI1NjYzLCAiaXNzIjogImh0dHA6Ly9sb2NhbGhvc3Q6ODAwMCIsICJzdWIiOiAiODAzMjcwNDJiOTZiOWYxYzAwZDlkMDRkYjgxNmU4NGFmNGUzNjE2ZGIxZDA2OTRiMTNhYjg2ZjQ5ZmQyNTFiZiIsICJqdGkiOiAiNTA2OTYzMWYyMzdhNjcxMWI5NTBhYjk2NTY2NmFlNDY1YWNhNGU3YjVkYWEwYWU3ODNmYWMyZTExZTE0OGZjZSIsICJ0dHlwZSI6ICJUIiwgImV4cCI6IDE2MDAxMjc0NjMsICJ1c2VybmFtZSI6ICJ3ZXJ0In0.LYMlyaOS4LNTSCJN2xEnroMXbxe_FwNPVBS6Cl6oU6I9ALd3_phRZKb4syS8TJdgZJchxzjV20wPDtVZkHu2U7DD0kuk7-0mdDmunoT96nM4iix2BboRpIqm6NnnJL2bRQKEkTxRp8un5GUUfNSN-cQo8tGMTjUyCASTMx2XIaonfziycF7cMxmShceTNrdTaCASLLWMxpu0LrV8led6dsg1kkGPg8UyCSlpUZRfvmZoCnbvAk84kuAwhj6AqB777v_eqx0VPFa-aK09eJOOsVK1zakLk-Ld6lBFtwFdQjVxEQ15zydI_2WzcdYDmElTTGZ-aOBLmF7irQWCfX034A'
-'refresh': 'eyJhbGciOiJSUzI1NiJ9.eyJpYXQiOiAxNjAwMTI1NjYzLCAiaXNzIjogImh0dHA6Ly9sb2NhbGhvc3Q6ODAwMCIsICJzdWIiOiAiODAzMjcwNDJiOTZiOWYxYzAwZDlkMDRkYjgxNmU4NGFmNGUzNjE2ZGIxZDA2OTRiMTNhYjg2ZjQ5ZmQyNTFiZiIsICJ0dHlwZSI6ICJSIiwgImp0aSI6ICIwNjRkZDA3NmJjYWZhN2ZiYTlhMjA1NTQ1MmQ4YjdkNDhlYjUzMjdmMWFhNGRmZmM4ZDFiZTVmZmQ4YmIzYjEyIiwgImV4cCI6IDE2MDAxMjkyNjN9.iZOXi0qRUzKKXE6R8zR3XFtrXkpNmF570LF4X8QpMl--3zysRZmshojRz97W_tjjb2lt9sm1nkcSPZ40GgCw7mxY9WcXxAxc7bGptBKsuqFIWtg6BhHTyva3TQOhiiYcJRhtI6gmWhUTScMnQ2ks5Tpjf5cXThp79BS9cGoxeGq3FPnpp_iFsQMnw96FL7jKalznFqHt1bfY63yuqCAsUW1JkK61pTm1Tn0H8H3xrm84h8LlWVWMHvrpzt1y-aHawHY0N2OT1h9wcuDhKygns4JQMkRtc6kgwbgwedr_5PMaBaE49t57P4Ezwvi8y41wEFJwFmSxPVr09EOZ6jqF9A'
+  "access_token": "eyJhbGciOiJSUzI1NiJ9.eyJpYXQiOiAxNjAwMzMwNzk1LCAiaXNzIjogImh0dHA6Ly9sb2NhbGhvc3Q6ODAwMCIsICJzdWIiOiAiYmIzNjI1NDgzYmQ0M2NjZGZhODk0ZWI3YTg4MTg3ZDNlZTI2MWQ0ZmRkMmIwMDFhNzMyMGY0YTRmMzk2YmM1YyIsICJqdGkiOiAiYmJhNWI3YmM2YzMzMjhlNmFjMGM2MDYxMTdjNGFkMTIxNzdiMzljMjc4ZDM0OTE3NTQ5NzljYWRhMGRkMmRhNSIsICJ0dHlwZSI6ICJUIiwgImV4cCI6IDE2MDAzMzI1OTUsICJ1c2VybmFtZSI6ICJjaXJvIiwgImVtYWlsIjogInRoYXRtYWlsQGluZ29hbGxhLm9yZyJ9.d_ZPZdBasemDuDEMZTkU_eCpCsrhrAvVobLdxkLZBI5E0-FLA4MJC66HxoXStUI2TXBwvqpKrcD_Je_5TNlqg7YuA-B9nUqkDPTIvUl1IwY4v4Ijyu-Trq6HNDkfnr4tYRKJqFIPzQGYnrcR_ox3-IdZQk1mveZzwwXWTnAyyA5G872jeTT0XOb8s2GBwUyS8ppT_ZstrxjpcGRcQ8YYIB7g4NAY33_BmeEFxsEbLmNrYYKR8PjskkCgiqOqtuhTaCBfBJJJ4BU07jBfUI0CjuJaLsKdAYA_HKlrH0B_hxbhF-LNvv88MtcuKD-FA76Ua3Ye8JQQqWXtCI6jYWbjPQ",
+  "refresh_token": "eyJhbGciOiJSUzI1NiJ9.eyJpYXQiOiAxNjAwMzMwNzk1LCAiaXNzIjogImh0dHA6Ly9sb2NhbGhvc3Q6ODAwMCIsICJzdWIiOiAiYmIzNjI1NDgzYmQ0M2NjZGZhODk0ZWI3YTg4MTg3ZDNlZTI2MWQ0ZmRkMmIwMDFhNzMyMGY0YTRmMzk2YmM1YyIsICJ0dHlwZSI6ICJSIiwgImp0aSI6ICI0ZWY3ZTM5MDIxN2I4NDE3MzUyYjA1MTM3NGQ1MGQwN2U1ZTEyYWI4OWE2ZTkzZmJhN2NlNTFhMDE3ODZlMjZjIiwgImV4cCI6IDE2MDAzMzQzOTV9.PLfPFCSqxtoVyufYNTJuD60ElW-2YG7cyKXJX6WMzgHeaYA96zCelscnfiK_RCuLkr6woZ_mbcZtI24ZIaR4pG_JE7onxCP8wg3oZE0yMGKcv5GXnWeAjx5mE3eBiIhvrZMH6Vn19prNyAuQ8Y5JCJUUeJ4QZiuYYk3TZAKAXAPoNaU1e__f7qHDmkfdBEZ7LliX5bQxkviAdfXS5VbX5CAgB1gOlgbaO4FTbtOpKoVn4YV0gfD_eV_E004JnmpGiOc5-yapE1w3-tTKTkxnfggD6TZOCm8oIZv2k3vkc1pTBIrts1inNg7EEukPdYvX6GFba3fe4FIY-p_6HBmG4A",
+  "token_type": "bearer",
+  "expires_in": 1800
+
 ````
 
 #### JWT implementation

@@ -87,7 +87,9 @@ class JWTConnectAuthTokenBuilder(object):
                         # if getattr(user, k)}
         else:
             userinfo = {}
-
+        
+        expires_in = kwargs.get('expires_in', JWTAUTH_ACCESS_TOKEN_LIFETIME)
+        
         # ACCESS TOKEN
         access_token = kwargs.copy()
         access_token['jti'] = get_random_hash()
@@ -106,7 +108,9 @@ class JWTConnectAuthTokenBuilder(object):
         rtoken['exp'] = int((timezone.localtime() + \
                              datetime.timedelta(seconds=rtoken_lifetime))\
                             .timestamp())
-        return dict(access_token=access_token, refresh_token=rtoken)
+        return dict(access_token=access_token, 
+                    refresh_token=rtoken,
+                    expires_in = expires_in)
 
     @staticmethod
     def create(data, alg=None, **kwargs):
@@ -117,8 +121,9 @@ class JWTConnectAuthTokenBuilder(object):
                              'JWTAUTH_ALGORITHM', DEFAULT_JWTAUTH_ALGORITHM)
         keys = import_string(JWTAUTH_KEYJAR_HANDLER).keys()
 
-        access_token, rtoken = data.values()
+        access_token, rtoken = data['access_token'], data['refresh_token']
         return {'access_token': Message(**access_token).to_jwt(keys, JWTAUTH_ALGORITHM),
-                'refresh_token': Message(**rtoken).to_jwt(keys, JWTAUTH_ALGORITHM),}
-                # 'token_type': 'bearer'}
+                'refresh_token': Message(**rtoken).to_jwt(keys, JWTAUTH_ALGORITHM),
+                'token_type': 'bearer',
+                'expires_in': data.get('expires_in', JWTAUTH_ACCESS_TOKEN_LIFETIME)}
                 
