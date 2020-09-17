@@ -15,15 +15,20 @@ from . models import *
 from . serializers import *
 
 
+HTTP_403_FORBIDDEN_RESPONSE = Response({'error': 'invalid_request', 
+                                        'error_description': "please go away"}, 
+                                        status=status.HTTP_403_FORBIDDEN)
+HTTP_401_UNAUTHORIZED_RESPONSE = Response({'error': 'invalid_token',
+                                           'error_description': 'token_expired or not existent'}, 
+                                           status=status.HTTP_401_UNAUTHORIZED)
+
 @api_view(['POST'])
 def token_introspection(request):
     """
     get "token" or "jti", return meta informations about the inspected token
     """
     if not JWTConnectAuthBearer().authenticate(request):
-        return Response({'error': 'invalid_request', 
-                         'error_description': "please go away"}, 
-                         status=status.HTTP_403_FORBIDDEN)
+        return HTTP_403_FORBIDDEN_RESPONSE
     
     value = request.data.get('token') or request.data.get('jti')
     jwt_store = JWTConnectAuthToken.objects.filter(is_active=True).\
@@ -49,10 +54,8 @@ def token_introspection(request):
                     sub = jwt_store.sub,
                     aud = jwt_store.aud)
         return Response(data, status=status.HTTP_200_OK)
-    return Response({'error': 'invalid_request', 
-                     'error_description': \
-                        "the requested token not exists or it was disabled"}, 
-                     status=status.HTTP_404_NOT_FOUND)
+    
+    return HTTP_401_UNAUTHORIZED_RESPONSE
 
 
 @api_view(['POST'])
@@ -65,7 +68,7 @@ def token_refresh(request):
         jwt_store = JWTConnectAuthToken.objects.filter(is_active=True, 
                                                        refresh_token=refresh_token).first()
         if not jwt_store or jwt_store.is_refresh_expired():
-            return Response({'error': 'token_expired'}, status=status.HTTP_401_UNAUTHORIZED)
+            return HTTP_401_UNAUTHORIZED_RESPONSE
         
         new_jwt_data = JWTConnectAuthTokenBuilder.build(jwt_store.user)
         new_jwt_enc = {k:v 

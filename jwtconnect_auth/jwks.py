@@ -113,17 +113,17 @@ class JWTConnectAuthTokenBuilder(object):
                     expires_in = expires_in)
 
     @staticmethod
-    def create(data, alg=None, **kwargs):
+    def create(data, alg=None, lifetime=None , **kwargs):
         """
         Only signed JWT from here
         """
-        alg = alg or getattr(settings,
-                             'JWTAUTH_ALGORITHM', DEFAULT_JWTAUTH_ALGORITHM)
+        alg = alg or JWTAUTH_ALGORITHM
         keys = import_string(JWTAUTH_KEYJAR_HANDLER).keys()
 
         access_token, rtoken = data['access_token'], data['refresh_token']
-        return {'access_token': Message(**access_token).to_jwt(keys, JWTAUTH_ALGORITHM),
-                'refresh_token': Message(**rtoken).to_jwt(keys, JWTAUTH_ALGORITHM),
+        return {'access_token': Message(**access_token).to_jwt(keys, alg),
+                'refresh_token': Message(**rtoken).to_jwt(keys, alg),
                 'token_type': 'bearer',
-                'expires_in': data.get('expires_in', JWTAUTH_ACCESS_TOKEN_LIFETIME)}
+                'expires_in': lifetime or data.get('expires_in', 
+                                                   JWTAUTH_ACCESS_TOKEN_LIFETIME)}
                 
