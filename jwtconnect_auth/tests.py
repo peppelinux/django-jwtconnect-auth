@@ -9,7 +9,7 @@ from django.test import TestCase, Client
 from django.urls import reverse
 
 from . exceptions import InvalidJWT
-from . jwks import *
+from . jwts import *
 from . models import JWTConnectAuthToken
 
 
@@ -91,15 +91,31 @@ class JWTTests(TestCase):
 
     def test_create_user_jwt(self):
         user = get_user_model().objects.create(**_user_dict)
-        jwk_store = JWTConnectAuthToken.create(user=user)
-        # jwk_store.aud = ['ciao', 'hola']
-        return jwk_store
+        jwt_store = JWTConnectAuthToken.create(user=user)
+        jwt_store.aud = ['ciao', 'hola']
+        return jwt_store
 
+    def test_jwt_store_methods(self):
+        jwt_store = self.test_create_user_jwt()
+        jwt_store.decode_access()
+        jwt_store.decode_refresh()
+        
+        jwt_store = JWTConnectAuthToken.create(user=jwt_store.user,
+                                               **dict(iat=100000,
+                                                      exp=1000000))
+        assert jwt_store.refresh_exp != False
+        assert jwt_store.access_exp != False
+        
+        assert jwt_store.is_access_expired()
+        assert jwt_store.is_refresh_expired()
+        
+        print(jwt_store)
+        
         
     def test_token_instrospection(self):
-        jwk_store = self.test_create_user_jwt()
-        atoken = jwk_store.access_token
-        rtoken = jwk_store.refresh_token
+        jwt_store = self.test_create_user_jwt()
+        atoken = jwt_store.access_token
+        rtoken = jwt_store.refresh_token
         url = reverse('jwtconnect_auth:token_introspection')
         req = Client().post(url,
                             HTTP_ACCEPT='application/json',
@@ -166,15 +182,27 @@ class JWTTests(TestCase):
                             data={'token': 'INVALID'},
                             HTTP_AUTHORIZATION='Bearer {}'.format(atoken)
                             )
-        assert req.status_code == 401
+        assert req.status_code in (401, 403)
 
 
-    def test_invalidtoken_refresh(self):
+    def test_invalid_refresh(self):
         jwk_store = self.test_create_user_jwt()
         atoken = jwk_store.access_token
         url = reverse('jwtconnect_auth:token_refresh')
         req = Client().post(url, HTTP_ACCEPT='application/json',
                             content_type='application/json',
-                            data={'INVALID': jwk_store.refresh_token},
-                            )
+                            data={'INVALID': jwk_store.refresh_token})
         assert req.status_code == 400
+
+
+    def test_invalid_auth(self):
+        jwk_store = self.test_create_user_jwt()
+        jwk_store.user.is_active = False
+        jwk_store.user.save()
+        atoken = jwk_store.access_token
+        url = reverse('jwtconnect_auth:token_introspection')
+        req = Client().post(url, HTTP_ACCEPT='application/json',
+                            content_type='application/json',
+                            data={'token': jwk_store.refresh_token},
+                            HTTP_AUTHORIZATION='Bearer {}'.format(atoken))
+        assert req.status_code == 403

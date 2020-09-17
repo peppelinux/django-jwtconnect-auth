@@ -13,6 +13,7 @@ from . authentication import JWTConnectAuthBearer
 from . models import *
 # from . permissions import *
 from . serializers import *
+from . settings import *
 
 
 HTTP_403_FORBIDDEN_RESPONSE = Response({'error': 'invalid_request', 
@@ -21,6 +22,9 @@ HTTP_403_FORBIDDEN_RESPONSE = Response({'error': 'invalid_request',
 HTTP_401_UNAUTHORIZED_RESPONSE = Response({'error': 'invalid_token',
                                            'error_description': 'token_expired or not existent'}, 
                                            status=status.HTTP_401_UNAUTHORIZED)
+
+JWTAUTH_ALLOW_REFRESH = getattr(settings, 'JWTAUTH_ALLOW_REFRESH',
+                                DEFAULT_JWTAUTH_ALLOW_REFRESH)
 
 @api_view(['POST'])
 def token_introspection(request):
@@ -64,7 +68,7 @@ def token_refresh(request):
     Token Refresh endpoint
     """
     refresh_token = request.data.get('token')
-    if refresh_token:
+    if refresh_token and JWTAUTH_ALLOW_REFRESH:
         jwt_store = JWTConnectAuthToken.objects.filter(is_active=True, 
                                                        refresh_token=refresh_token).first()
         if not jwt_store or jwt_store.is_refresh_expired():

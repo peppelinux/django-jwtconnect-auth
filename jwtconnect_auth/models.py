@@ -9,7 +9,7 @@ from django.utils import timezone
 from django.utils.translation import gettext as _
 
 from . exceptions import InvalidJWT
-from . jwks import *
+from . jwts import *
 
 
 logger = logging.getLogger('__name__')
@@ -63,11 +63,11 @@ class JWTConnectAuthToken(models.Model):
     def create(cls, user, **kwargs):
         kwargs['user'] = user
         data = JWTConnectAuthTokenBuilder.build(**kwargs)
+        kwargs.pop('exp', None)
         jwts = JWTConnectAuthTokenBuilder.create(data, **kwargs)
         kwargs['access_token'] = jwts['access_token']
         kwargs['refresh_token'] = jwts['refresh_token']
         return cls.objects.create(**kwargs)
-        
     
     @property
     def iat(self):

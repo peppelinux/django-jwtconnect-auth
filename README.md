@@ -1,23 +1,23 @@
 # django-jwtconnect-auth
 A Django JWT Authentication Backend built on top of JWTConnect.io, [CryptoJWT](https://cryptojwt.readthedocs.io/) and [OidcMsg](https://oidcmsg.readthedocs.io/).
 
-This application made simple building a JWT based authentication system, with less as possibile endpoint involved.
+This application made simple building a JWT based authentication system, with less as possibile endpoints involved.
 Its birth is due to a desire for simplification in cases where a customized system is required for the granting of authorizations to access resources. It comes with the bare minimum, it could be useful as a basis also for the production of *OAuth2 AS* and *OIDC Providers*, it would just need to add specific endpoints and further attributes in the construction of the JWT.
 
-The main goal for this application is to __provide a secure standard for JWT management__ and not to offer a OAuth2 or OIDC compliant server. These can be implemented on top of this app. This application also show us how to deal with [OidcMsg](https://oidcmsg.readthedocs.io/) and [CryptoJWT](https://cryptojwt.readthedocs.io/) in a totally free way.
+The main goal for this application is to __provide a secure standard for JWT management and not to offer a OAuth2 or OIDC compliant server__. These can be implemented on top of this app as well. This application also show us how to deal with [OidcMsg](https://oidcmsg.readthedocs.io/) and [CryptoJWT](https://cryptojwt.readthedocs.io/) in a totally free way.
 
 At this time and as it is, jwtconnect-auth can be adopted for the following scopes:
 
 - Third-party applications can have Access tokens and renew these, via Rest API (Django Rest framework)
-- Creation of token after a user have been logged in, in cases where third-party SingleSignOn systems were involved. There wouldn't be any submission of credentials from Application to jwtconnect-auth to obtain a token.
+- Creation of token after a user have been logged in, in cases where third-party Single SignOn systems were involved. There wouldn't be any direct submission of credentials from Application to jwtconnect-auth to obtain a token.
 
 # Specifications and common endpoints
 
-- Tokens could be relased with an authentication web resource where to submit username and password, mind that this would be disabled in the field of SSO infrastructures as SAML2.
+- Tokens could be also relased with an authentication web resource where to submit username and password, mind that this would be disabled in the field of SSO infrastructures as SAML2, you can decide how and why you should do this.
 - Token creation is triggered once, independently by what kind of External Authentication happens, a django signal creates the token for authenticated users if this doesn't exist yet (signal should be enabled in your setup).
   The release mechanism can be completely customized, you can decide how and where the release of token to the Apps would happen, implementing it in your own.
-- Tokens can be refreshed via POST method: `/token/refresh`
-- A user can have multiple active tokens or one at time (configurable in general `settings`). The last overwrite the older.
+- Tokens can be refreshed via POST method: `/token/refresh` by default, but it's customizable in `urls.py` of your project folder.
+- A user can have multiple active tokens or one at time (configurable in general `settings`).
 - TokenIntrospection endpoint would let third-party applications to get additional informations about a token.
 
   
@@ -115,11 +115,12 @@ from cryptojwt.jwk.rsa import import_private_rsa_key_from_file
 JWTAUTH_ACCESS_TOKEN_LIFETIME = 1800
 JWTAUTH_REFRESH_TOKEN_LIFETIME = 3600
 
+JWTAUTH_ALLOW_REFRESH = True
 JWTAUTH_UPDATE_LAST_LOGIN = True
 
 # Signature features (see cryptojwt documentation)
 
-# if symmetric: discourage, please forget it!
+# if symmetric: discouraged, please mind the security!
 JWTAUTH_ALGORITHM: 'HS256'
 JWTAUTH_KEY = 'thatsecret'
 

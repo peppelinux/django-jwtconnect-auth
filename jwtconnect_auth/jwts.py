@@ -83,7 +83,7 @@ class JWTConnectAuthTokenBuilder(object):
         """
         user: a django user
         """
-        kwargs['iat'] = int(timezone.localtime().timestamp())
+        kwargs['iat'] = kwargs.get('iat', int(timezone.localtime().timestamp()))
         if getattr(settings, 'JWTAUTH_ISSUER', None):
             kwargs['iss'] = settings.JWTAUTH_ISSUER
 
@@ -102,7 +102,7 @@ class JWTConnectAuthTokenBuilder(object):
         access_token['jti'] = get_random_hash()
         access_token['ttype'] = 'T'
         atoken_lifetime = JWTAUTH_ACCESS_TOKEN_LIFETIME
-        access_token['exp'] = int((timezone.localtime() + \
+        access_token['exp'] = kwargs.get('exp') or int((timezone.localtime() + \
                                    datetime.timedelta(seconds=atoken_lifetime))\
                                   .timestamp())
         access_token.update(userinfo)
@@ -112,7 +112,7 @@ class JWTConnectAuthTokenBuilder(object):
         rtoken['ttype'] = 'R'
         rtoken['jti'] = get_random_hash()
         rtoken_lifetime = JWTAUTH_REFRESH_TOKEN_LIFETIME
-        rtoken['exp'] = int((timezone.localtime() + \
+        rtoken['exp'] = kwargs.get('exp') or int((timezone.localtime() + \
                              datetime.timedelta(seconds=rtoken_lifetime))\
                             .timestamp())
         return dict(access_token=access_token, 
