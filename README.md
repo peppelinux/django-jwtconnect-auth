@@ -16,7 +16,7 @@ At this time and as it is, jwtconnect-auth can be adopted for the following scop
 - Tokens could be also relased with an authentication web resource where to submit username and password, mind that this would be disabled in the field of SSO infrastructures as SAML2, you can decide how and why you should do this.
 - Token creation is triggered once, independently by what kind of External Authentication happens, a django signal creates the token for authenticated users if this doesn't exist yet (signal should be enabled in your setup).
   The release mechanism can be completely customized, you can decide how and where the release of token to the Apps would happen, implementing it in your own.
-- Tokens can be refreshed via POST method: `/token/refresh` by default, but it's customizable in `urls.py` of your project folder.
+- Tokens can be refreshed via POST method: `/token/refresh` by default, but it's customizable in the `urls.py` of your project folder.
 - A user can have multiple active tokens or one at time (configurable in general `settings`).
 - TokenIntrospection endpoint would let third-party applications to get additional informations about a token.
 
