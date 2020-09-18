@@ -77,7 +77,7 @@ INSTALLED_APPS = [
 ]
 ````
 
-Add minimum parameters are involved to get it to work, see the complete list in `jwtconnect_auth/settings.py`
+Minimum parameters involved to get it to work, see a list of these in `jwtconnect_auth/settings.py`
 ````
 # JWTCONNECT SETTINGS
 JWTAUTH_KEY  = import_private_rsa_key_from_file('certs/private.key')
